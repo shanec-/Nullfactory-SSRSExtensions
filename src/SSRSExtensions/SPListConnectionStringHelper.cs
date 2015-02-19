@@ -22,12 +22,20 @@ namespace Nullfactory.SSRSExtensions
 
         }
 
+
+        /// <summary>
+        /// Get the connection string
+        /// </summary>
+        /// <param name="reportServerUrl">The Report Server Url</param>
+        /// <returns>Plain text connections tring</returns>
         [SecuritySafeCritical]
         public string GetConnectionString(string reportServerUrl)
         {
             //assumption that the configuration list would be on the same sharepoint server
             //change as required
-            string serverUrl = new Uri(reportServerUrl).Authority;
+
+            Uri serverUri = new Uri(reportServerUrl);
+            string serverUrl = serverUri.GetLeftPart(UriPartial.Authority);
 
             var credential = GetSecurityCredentials();
 
@@ -39,15 +47,15 @@ namespace Nullfactory.SSRSExtensions
         /// <summary>
         /// Get encrypted connection string from SharePoint list
         /// </summary>
-        /// <param name="reportServerUrl"></param>
-        /// <param name="credentials"></param>
-        /// <returns></returns>
+        /// <param name="reportServerUrl">Report Server Url</param>
+        /// <param name="credentials">The Credentials</param>
+        /// <returns>The connection string</returns>
         [SecurityCritical]
         internal string GetConnectionStringFromSharePointList(string reportServerUrl, ICredentials credentials)
         {
             //assumption that the connection string to the database is stored as an encrypted value in a list called "Configuration"
             string webRequestUrl = 
-                string.Format("http://{0}/_api/lists/getbytitle('Configuration')/items/?$select=Title,Value&$filter=startswith(Title,'ConnectionString')", reportServerUrl);
+                string.Format("{0}/_api/lists/getbytitle('Configuration')/items/?$select=Title,Value&$filter=startswith(Title,'ConnectionString')", reportServerUrl);
 
             var webPermission = new System.Net.WebPermission(NetworkAccess.Connect, webRequestUrl);
             webPermission.Assert();
